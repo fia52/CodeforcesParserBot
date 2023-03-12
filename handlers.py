@@ -19,6 +19,10 @@ async def greeting(message: types.Message, state: FSMContext) -> None:
 async def start_dialog(message: types.Message, state: FSMContext) -> None:
     """ Отлавливает команду кнопку, выводит соответствующую клавиатуру. """
 
+    current_state = await state.get_state()
+    if current_state is not None:
+        await state.finish()
+
     await bot.send_message(message.from_user.id, 'Пожалуйста, выберите предпочитаемую тему задач')
 
     await GetProblemListFSM.waiting_topic_name.set()
@@ -35,8 +39,7 @@ async def get_topic_name(message: types.Message, state: FSMContext) -> None:
 
     async with state.proxy() as data:
         data['topic_name'] = message.text.lower()
-    await bot.send_message(message.from_user.id, 'Пожалуйста, выберите предпочитаемую сложность задач',
-                           reply_markup=keyboards.COMPLEXITY_KEYBOARD)
+    await bot.send_message(message.from_user.id, 'Пожалуйста, выберите предпочитаемую сложность задач')
     await GetProblemListFSM.next()
 
 
@@ -56,7 +59,7 @@ async def get_complexity_name(message: types.Message, state: FSMContext) -> None
 
     except Exception:
         await bot.send_message(message.from_user.id, 'Что-то не так, возможно, вы ошиблись при вводе данных',
-                               reply_markup=keyboards.TOPICS_KEYBOARD)
+                               reply_markup=keyboards.GREETING)
 
     await state.finish()
 
