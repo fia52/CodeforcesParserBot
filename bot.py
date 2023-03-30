@@ -13,5 +13,10 @@ bot_bd = BotBD(HOST, USER, PASSWORD, DB_NAME)
 
 if __name__ == "__main__":
     from handlers import register_main_handlers
+
     register_main_handlers(dp)
-    executor.start_polling(dp, skip_updates=True, on_startup=threading.Thread(target=bot_bd.autoupdater).start())
+    executor.start_polling(
+        dp,
+        skip_updates=True,
+        on_startup=threading.Thread(target=bot_bd.autoupdater).start(),
+    )
