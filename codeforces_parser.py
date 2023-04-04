@@ -1,3 +1,4 @@
+import bs4.element
 import requests
 from bs4 import BeautifulSoup
 
@@ -33,29 +34,36 @@ def all_pages_parser(url: str, headers: dict) -> list[dict]:
 
         for problem in problems:
             record = {
-                "number": problem.find_all("td")[0].text.strip()
-                if problem.find_all("td")[0]
-                else "None",
-                "name": problem.find_all("td")[1].find_all("div")[0].text.strip()
-                if problem.find_all("td")[1]
-                and problem.find_all("td")[1].find_all("div")[0]
-                else "None",
-                "topic": ", ".join(
-                    map(
-                        lambda x: x.text.strip(),
-                        problem.find_all("td")[1].find_all("div")[1].find_all("a"),
-                    )
-                )
-                if problem.find_all("td")[1]
-                and problem.find_all("td")[1].find_all("div")[1]
-                else "None",
-                "complexity": problem.find_all("td")[3].text.strip()
-                if problem.find_all("td")[3]
-                else "None",
-                "solutions_num": problem.find_all("td")[4].text.strip()
-                if problem.find_all("td")[4]
-                else "None",
+                "number": get_text_by_path(problem, "1.a"),
+                "name": get_text_by_path(problem, "3.1.a"),
+                "topic": " ".join(map(lambda x: x.strip(), get_text_by_path(problem, "3.3").split('\n'))),
+                "complexity": get_text_by_path(problem, "7.span"),
+                "solutions_num": get_text_by_path(problem, "9.a")
             }
             list_of_records.append(record)
 
     return list_of_records
+
+
+def get_text_by_path(element: bs4.element.Tag, path: str) -> str:
+    """
+    Получаем путь к искомому элементу в виде td.1.div.0.a и отдаем его
+    """
+
+    keys = path.split(".")
+    result = element
+
+    for key in keys:
+        try:
+            if key.isdigit():
+                result = result.contents[int(key)]
+            else:
+                result = result.find(key)
+
+            if not result:
+                return "None"
+
+        except (AttributeError, IndexError):
+            return "None"
+
+    return result.text.strip()
